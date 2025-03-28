@@ -7,7 +7,7 @@ from app.udaconnect.models import Location
 from app.udaconnect.schemas import LocationSchema
 from geoalchemy2.functions import ST_Point
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("udaconnect-api")
 
 # Kafka-Parameter
