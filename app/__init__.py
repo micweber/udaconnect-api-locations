@@ -4,7 +4,6 @@ from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
 import logging
 import sys
-import threading
 
 db = SQLAlchemy()
 
@@ -31,7 +30,4 @@ def create_app(env=None):
     logger = logging.getLogger(__name__)
     logger.info("#2 - Microservice Locations")
     
-    kafka_thread = threading.Thread(target=consume_messages, daemon=True)
-    kafka_thread.start()
-
     return app

@@ -1,33 +1,32 @@
-from datetime import datetime
+import json
+import logging
 
-from app.udaconnect.models import Location
 from app.udaconnect.schemas import LocationSchema
-from app.udaconnect.services import LocationService
-from flask import request
+from app.udaconnect.kafka_producer import KafkaService
+from flask import request, Response
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
-from typing import Optional, List
 
 DATE_FORMAT = "%Y-%m-%d"
 
 api = Namespace("UdaConnect", description="Connections via geolocation.")  # noqa
-
-
-# TODO: This needs better exception handling
-
+logger = logging.getLogger("udaconnect-api")
 
 @api.route("/locations")
-@api.route("/locations/<location_id>")
-@api.param("location_id", "Unique ID for a given Location", _in="query")
 class LocationResource(Resource):
-    @accepts(schema=LocationSchema)
+    @accepts(schema=LocationSchema, api=api)
     @responds(schema=LocationSchema)
-    def post(self) -> Location:
-        request.get_json()
-        location: Location = LocationService.create(request.get_json())
-        return location
+    def post(self) -> Response:
+        location_data = request.get_json()  # JSON-Daten abrufen
+        if not location_data:
+            return Response(json.dumps({"error": "Invalid payload"}), status=400, mimetype="application/json")
 
-    @responds(schema=LocationSchema)
-    def get(self, location_id) -> Location:
-        location: Location = LocationService.retrieve(location_id)
-        return location
+        # Sende Daten an Kafka
+        try:
+            KafkaService.write_message(location_data)
+            logger.info("Location data successfully sent to Kafka.")
+        except Exception as e:
+            logger.error(f"Failed to send location data to Kafka: {e}")
+            return Response(json.dumps({"error": "Internal Server Error"}), status=500, mimetype="application/json")
+
+        return Response(json.dumps({"message": "Location queued successfully"}), status=202, mimetype="application/json")
