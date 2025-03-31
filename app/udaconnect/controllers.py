@@ -9,7 +9,7 @@ from flask_restx import Namespace, Resource
 
 DATE_FORMAT = "%Y-%m-%d"
 
-api = Namespace("UdaConnect", description="Connections via geolocation.")  # noqa
+api = Namespace("UdaConnect Locations", description="Provide geoData from mobile devices")  # noqa
 logger = logging.getLogger("udaconnect-api")
 
 @api.route("/locations")
